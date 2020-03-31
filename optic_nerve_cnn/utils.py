@@ -206,7 +206,8 @@ def preprocess(batch_X, batch_y, train_idg, test_idg, train_or_test='train'):
     return batch_X, batch_y
 
 
-def data_generator(X, y, test_idx, train_idx, resize_to=128, train_or_test='train', batch_size=3, return_orig=False,
+def data_generator(X, y, test_idx, train_idx, train_idg, test_idg, disc_locations, resize_to=128,
+                   train_or_test='train', batch_size=3, return_orig=False,
                    stationary=False):
     """Gets random batch of data,
     divides by 255,
@@ -271,7 +272,8 @@ def rescale_back(cropped, rectangle, orig_size=(512, 512), resulting_size=(256, 
 # Showing the best and the worst cases:
 
 
-def show_img_pred_corr(i, file_suffix):  # i is index of image in test_idx
+def show_img_pred_corr(i, file_suffix,  # i is index of image in test_idx
+                       test_idx, disc_locations, X, Y, model, test_idg, dataset):
     img_no = test_idx[i]
     idx = [img_no]
     batch_X = [X[i][disc_locations[i][0]:disc_locations[i][2], disc_locations[i][1]:disc_locations[i][3]]
@@ -289,7 +291,7 @@ def show_img_pred_corr(i, file_suffix):  # i is index of image in test_idx
 
     batch_X = tf_to_th_encoding(batch_X)
     batch_y = tf_to_th_encoding(batch_y)
-    batch_X, batch_y = preprocess(batch_X, batch_y, 'test')
+    batch_X, batch_y = preprocess(batch_X, batch_y, 'test', test_idg=test_idg)
 
     pred = model.predict(batch_X)[0, 0] > 0.5
     # corr = Y[img_no][..., 0]

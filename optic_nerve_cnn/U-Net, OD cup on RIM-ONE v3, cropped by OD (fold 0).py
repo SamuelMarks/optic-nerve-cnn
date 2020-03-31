@@ -75,7 +75,7 @@ def main(dataset='RIM_ONE_v3', show_best_and_worst=True):
     # Testing the data generator and generator for augmented data:
 
     gen = data_generator(X=X, y=Y, resize_to=128, train_or_test='train', batch_size=1,
-                         test_idx=test_idx, train_idx=train_idx)
+                         test_idx=test_idx, train_idx=train_idx, disc_locations=disc_locations)
     batch = next(gen)
     batch[0].shape
 
@@ -93,7 +93,10 @@ def main(dataset='RIM_ONE_v3', show_best_and_worst=True):
 
     weights_folder
 
-    X_valid, Y_valid = next(data_generator(X, Y, train_or_test='test', batch_size=100, stationary=True))
+    X_valid, Y_valid = next(
+        data_generator(X=X, y=Y, test_idx=test_idx, train_idx=train_idx, test_idg=test_idg, train_idg=train_idg,
+                       train_or_test='test', batch_size=100, stationary=True, disc_locations=disc_locations)
+    )
     plt.imshow(np.rollaxis(X_valid[0], 0, 3))
     plt.show()
     print(X_valid.shape, Y_valid.shape)
@@ -102,24 +105,26 @@ def main(dataset='RIM_ONE_v3', show_best_and_worst=True):
     #
     # If a pretrained model needs to be used, first run "Loading model" section below and then go the "Comprehensive visual check", skipping this section.
 
-    history = model.fit_generator(data_generator(X, Y, train_or_test='train', batch_size=1),
-                                  samples_per_epoch=len(train_idx),
-                                  max_q_size=1,
+    history = model.fit_generator(
+        data_generator(X=X, y=Y, test_idx=test_idx, train_idx=train_idx, test_idg=test_idg, train_idg=train_idg,
+                       train_or_test='train', batch_size=1, disc_locations=disc_locations),
+        samples_per_epoch=len(train_idx),
+        max_q_size=1,
 
-                                  validation_data=(X_valid, Y_valid),
-                                  # validation_data=data_generator(X, Y, train_or_test='test', batch_size=1),
-                                  # nb_val_samples=100,
+        validation_data=(X_valid, Y_valid),
+        # validation_data=data_generator(X, Y, train_or_test='test', batch_size=1),
+        # nb_val_samples=100,
 
-                                  nb_epoch=500, verbose=1,
+        nb_epoch=500, verbose=1,
 
-                                  callbacks=[
-                                      CSVLogger(os.path.join(folder(weights_folder), 'training_log.csv'), append=True),
-                                      # ReduceLROnPlateau(monitor='val_loss', mode='min', factor=0.5, verbose=1, patience=50),
-                                      ModelCheckpoint(os.path.join(folder(weights_folder),
-                                                                   # 'weights.ep-{epoch:02d}-val_mean_IOU-{val_mean_IOU_gpu:.2f}_val_loss_{val_loss:.2f}.hdf5',
-                                                                   'last_checkpoint.hdf5'),
-                                                      monitor='val_loss', mode='min', save_best_only=True,
-                                                      save_weights_only=False, verbose=0)])
+        callbacks=[
+            CSVLogger(os.path.join(folder(weights_folder), 'training_log.csv'), append=True),
+            # ReduceLROnPlateau(monitor='val_loss', mode='min', factor=0.5, verbose=1, patience=50),
+            ModelCheckpoint(os.path.join(folder(weights_folder),
+                                         # 'weights.ep-{epoch:02d}-val_mean_IOU-{val_mean_IOU_gpu:.2f}_val_loss_{val_loss:.2f}.hdf5',
+                                         'last_checkpoint.hdf5'),
+                            monitor='val_loss', mode='min', save_best_only=True,
+                            save_weights_only=False, verbose=0)])
 
     pred_iou, pred_dice = [], []
 
@@ -171,9 +176,11 @@ def main(dataset='RIM_ONE_v3', show_best_and_worst=True):
     if show_best_and_worst:
         best_idx = np.argmax(pred_iou)
         worst_idx = np.argmin(pred_iou)
-        show_img_pred_corr(best_idx, 'best')
+        show_img_pred_corr(best_idx, 'best', test_idx=test_idx, disc_locations=disc_locations, X=X, Y=Y, model=model,
+                           test_idg=test_idg, dataset=dataset)
         print('IOU: {}, Dice: {} (best)'.format(pred_iou[best_idx], pred_dice[best_idx]))
-        show_img_pred_corr(worst_idx, 'worst')
+        show_img_pred_corr(worst_idx, 'worst', test_idx=test_idx, disc_locations=disc_locations, X=X, Y=Y, model=model,
+                           test_idg=test_idg, dataset=dataset)
         print('IOU: {}, Dice: {} (worst)'.format(pred_iou[worst_idx], pred_dice[worst_idx]))
 
     # ### Loading model

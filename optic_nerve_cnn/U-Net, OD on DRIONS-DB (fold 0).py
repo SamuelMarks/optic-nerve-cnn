@@ -70,7 +70,8 @@ def main(dataset='DRIONS_DB', fold0=True):
 
     # Testing the data generator and generator for augmented data:
 
-    gen = data_generator(X, Y, 'train', batch_size=1)
+    gen = data_generator(X=X, y=Y, test_idx=test_idx, train_idx=train_idx, test_idg=test_idg, train_idg=train_idg,
+                         train_or_test='train', batch_size=1)
     batch = next(gen)
     batch[0].shape
 

@@ -73,7 +73,8 @@ def main(dataset='DRISHTI_GS', show_best_and_worst=True):
 
     # Testing the data generator and generator for augmented data:
 
-    gen = data_generator(X, Y, 128, 'train', batch_size=1)
+    gen = data_generator(X=X, y=Y, resize_to=128, train_or_test='train', batch_size=1,
+                         test_idx=test_idx, test_idg=test_idg, train_idx=train_idx, train_idg=train_idg)
     batch = next(gen)
     batch[0].shape
 
@@ -91,7 +92,10 @@ def main(dataset='DRISHTI_GS', show_best_and_worst=True):
 
     weights_folder
 
-    X_valid, Y_valid = next(data_generator(X, Y, train_or_test='test', batch_size=100, stationary=True))
+    X_valid, Y_valid = next(
+        data_generator(X=X, y=Y, test_idx=test_idx, train_idx=train_idx, test_idg=test_idg, train_idg=train_idg,
+                       train_or_test='test', batch_size=100, stationary=True, disc_locations=disc_locations)
+    )
     plt.imshow(np.rollaxis(X_valid[0], 0, 3))
     plt.show()
     print(X_valid.shape, Y_valid.shape)
@@ -100,7 +104,8 @@ def main(dataset='DRISHTI_GS', show_best_and_worst=True):
     #
     # If a pretrained model needs to be used, first run "Loading model" section below and then go the "Comprehensive visual check", skipping this section.
 
-    history = model.fit_generator(data_generator(X, Y, train_or_test='train', batch_size=1),
+    history = model.fit_generator(data_generator(X=X, y=Y, train_or_test='train', batch_size=1,
+                                                 disc_locations=disc_locations, test_idx=test_idx, train_idx=train_idx),
                                   samples_per_epoch=len(train_idx),
                                   max_q_size=1,
 
@@ -169,9 +174,11 @@ def main(dataset='DRISHTI_GS', show_best_and_worst=True):
     if show_best_and_worst:
         best_idx = np.argmax(pred_iou)
         worst_idx = np.argmin(pred_iou)
-        show_img_pred_corr(best_idx, 'best')
+        show_img_pred_corr(best_idx, 'best', test_idx=test_idx, disc_locations=disc_locations, X=X, Y=Y, model=model,
+                           test_idg=test_idg, dataset=dataset)
         print('IOU: {}, Dice: {} (best)'.format(pred_iou[best_idx], pred_dice[best_idx]))
-        show_img_pred_corr(worst_idx, 'worst')
+        show_img_pred_corr(worst_idx, 'worst', test_idx=test_idx, disc_locations=disc_locations, X=X, Y=Y, model=model,
+                           test_idg=test_idg, dataset=dataset)
         print('IOU: {}, Dice: {} (worst)'.format(pred_iou[worst_idx], pred_dice[worst_idx]))
 
     # ### Loading model
