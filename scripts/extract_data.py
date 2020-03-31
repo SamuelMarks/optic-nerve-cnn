@@ -1,7 +1,7 @@
 import os
-from platform import python_version_tuple
+from sys import version_info
 
-if python_version_tuple()[0] == 3:
+if version_info.major == 3:
     xrange = range
 
 import numpy as np

@@ -8,6 +8,11 @@ Created on Sun Sep 06 22:10:57 2015
 import os
 import glob
 from math import sqrt
+from sys import version_info
+
+if version_info.major == 3:
+    xrange = range
+
 import numpy as np
 import scipy as sp
 from PIL import Image
